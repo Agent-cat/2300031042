@@ -243,3 +243,7 @@ emailQueue.process(async (job) => {
 ```
 
 ---
+
+# Stage 6
+
+I had calculated a total score for each notification by adding a static type weight  to a time-based recency score that decays as the notification ages. The list is then sorted by this total score in descending order to return the top N highest-priority items.
