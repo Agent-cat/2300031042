@@ -142,3 +142,40 @@ WHERE user_id = :userId
 ```
 
 ---
+
+# Stage 3
+
+### 1. Query Accuracy
+
+- The query returns correct data, but by fetching all unread notifications without a `LIMIT` or pagination will cause high latency and high memory usage if a user has many unread notifications.
+
+### 2. Why it is Slow
+
+- **No Index**: The DB has to perform a full table scan or a slow index lookup and then sort the matched records in memory because there is no index
+- **Select All**: Using `SELECT *` fetches large message bodies
+- **No Pagination**: It attempts to load all unread records at once
+
+### 3. Changes
+
+- **Solution**:
+  1. Add a index:
+     ```sql
+     CREATE INDEX idx_student_unread ON notifications (studentID, isRead, createdAt DESC);
+     ```
+
+### 4. Indexing Every Column
+
+- No,this is bad advice indexing on every column will make writes very slow and consume a lot of storage space
+  - **Write Latency**: Every insert, update, and delete will slow down because the DB has to write to every index.
+  - **Storage**: Indexes occupy a lot of disk and RAM space.
+
+### 5. Placement Notification Query
+
+```sql
+SELECT DISTINCT studentID
+FROM notifications
+WHERE notificationType = 'Placement'
+  AND createdAt >= NOW() - INTERVAL '7 days';
+```
+
+---
